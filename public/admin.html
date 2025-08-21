@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PMO Dashboard Admin Panel</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --muted: #64748b;
+    --text: #1e293b;
+    --accent: #3b82f6;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #06b6d4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { margin: 0; font-size: 24px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  
+  .container { padding: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  .card h3 { margin: 0 0 16px 0; color: var(--text); font-size: 18px; }
+  
+  /* Navigation */
+  .nav-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    gap: 0;
+  }
+  .nav-tab {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+  }
+  .nav-tab:hover:not(.active) {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.02);
+  }
+  
+  /* Tab content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  
+  /* Forms */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { 
+    display: block; 
+    margin-bottom: 6px; 
+    font-weight: 600; 
+    color: var(--text);
+    font-size: 14px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-warning { background: var(--warning); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-info { background: var(--info); color: white; }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  
+  /* Tables */
+  .table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: var(--text);
+    position: sticky;
+    top: 0;
+  }
+  tr:hover { background: #f8fafc; }
+  
+  /* Action buttons in tables */
+  .action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 4px;
+  }
+  .action-btn.edit { background: var(--accent); color: white; }
+  .action-btn.delete { background: var(--danger); color: white; }
+  
+  /* Status indicators */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .status-active { background: #dcfce7; color: #166534; }
+  .status-inactive { background: #fef2f2; color: #dc2626; }
+  
+  /* Notifications */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 1001;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 350px;
+  }
+  .notification.show { transform: translateX(0); }
+  .notification.success { background: var(--success); }
+  .notification.error { background: var(--danger); }
+  .notification.warning { background: var(--warning); }
+  .notification.info { background: var(--info); }
+  
+  /* Loading spinner */
+  .loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .nav-tabs { flex-direction: column; }
+    .nav-tab { border-bottom: none; border-right: 3px solid transparent; }
+    .nav-tab.active { border-right-color: var(--accent); }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>PMO Dashboard Admin Panel</h1>
+      <div class="sub">Manage dropdown options, users, and system settings</div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span id="apiStatus" style="padding: 6px 12px; border-radius: 6px; font-size: 12px; background: #f1f5f9;">Checking...</span>
+      <button id="refreshAllDataBtn" class="btn btn-info">🔄 Refresh</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalProjects">0</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalUsers">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalOptions">0</div>
+        <div class="stat-label">Dropdown Options</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="recentChanges">0</div>
+        <div class="stat-label">Recent Changes</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="dropdowns">Dropdown Options</button>
+      <button class="nav-tab" data-tab="users">User Management</button>
+      <button class="nav-tab" data-tab="projects">Project Overview</button>
+      <button class="nav-tab" data-tab="comments">Comments</button>
+      <button class="nav-tab" data-tab="activity">Activity Log</button>
+      <button class="nav-tab" data-tab="settings">Settings</button>
+    </div>
+
+    <!-- Dropdown Options Tab -->
+    <div id="dropdowns" class="tab-content active">
+      <div class="card">
+        <h3>Manage Dropdown Options</h3>
+        
+        <!-- Add New Option Form -->
+        <form id="addOptionForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="optionType">Option Type</label>
+              <select id="optionType" required>
+                <option value="">Select Type</option>
+                <option value="account_managers">Account Managers</option>
+                <option value="statuses">Statuses</option>
+                <option value="priorities">Priorities</option>
+                <option value="phases">Project Phases</option>
+                <option value="end_months">End Months</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="optionValue">Option Value</label>
+              <input type="text" id="optionValue" required placeholder="Enter option value">
+            </div>
+            <div class="form-group">
+              <label for="optionDescription">Description (Optional)</label>
+              <input type="text" id="optionDescription" placeholder="Brief description">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">
+            <span id="addOptionText">+ Add Option</span>
+            <span id="addOptionSpinner" class="loading" style="display: none;"></span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Options List -->
+      <div class="card">
+        <h3>Current Options</h3>
+        <div class="table-container">
+          <table id="optionsTable">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Description</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Management Tab -->
+    <div id="users" class="tab-content">
+      <div class="card">
+        <h3>Add New User</h3>
+        <form id="addUserForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+              <label for="role">Role</label>
+              <select id="role" required>
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="viewer">Viewer</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success">+ Add User</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>User List</h3>
+        <div class="table-container">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Overview Tab -->
+    <div id="projects" class="tab-content">
+      <div class="card">
+        <h3>Project Statistics</h3>
+        <div class="table-container">
+          <table id="projectsTable">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Customer</th>
+                <th>Account Manager</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Tab -->
+    <div id="comments" class="tab-content">
+      <div class="card">
+        <h3>Comment Management</h3>
+        <div style="margin-bottom: 20px;">
+          <button id="refreshCommentsBtn" class="btn btn-primary">🔄 Refresh Comments</button>
+          <button id="exportCommentsBtn" class="btn btn-warning">📊 Export Comments</button>
+        </div>
+        <div class="table-container">
+          <table id="commentsTable">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Customer</th>
+                <th>Comment</th>
+                <th>Added By</th>
+                <th>Timestamp</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Log Tab -->
+    <div id="activity" class="tab-content">
+      <div class="card">
+        <h3>Recent Activity Log</h3>
+        <div class="table-container">
+          <table id="activityTable">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>User</th>
+                <th>Details</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settings" class="tab-content">
+      <div class="card">
+        <h3>System Settings</h3>
+        <form id="settingsForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="maxProjectsPerPage">Max Projects Per Page</label>
+              <input type="number" id="maxProjectsPerPage" min="10" max="1000" value="100">
+            </div>
+            <div class="form-group">
+              <label for="autoRefreshInterval">Auto Refresh Interval (seconds)</label>
+              <input type="number" id="autoRefreshInterval" min="30" max="300" value="60">
+            </div>
+            <div class="form-group">
+              <label for="enableNotifications">Enable Notifications</label>
+              <select id="enableNotifications">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="logRetentionDays">Log Retention (days)</label>
+              <input type="number" id="logRetentionDays" min="7" max="365" value="30">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html> 
