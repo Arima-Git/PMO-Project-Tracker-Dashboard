@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard Login</title>
+  <style>
+    body { background: #f9fafb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; margin: 0; }
+    .login-container { max-width: 400px; margin: 80px auto; background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px; border: 1px solid #e2e8f0; }
+    h2 { margin-bottom: 24px; text-align: center; color: #3b82f6; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 15px; }
+    input:focus { outline: none; border-color: #3b82f6; }
+    .btn { width: 100%; padding: 10px; border-radius: 8px; border: none; background: #3b82f6; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+    .btn:hover { background: #2563eb; }
+    .error { color: #ef4444; margin-top: 10px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <form id="adminLoginForm">
+      <div class="form-group">
+        <label for="adminUsername">Username</label>
+        <input type="text" id="adminUsername" name="username" required />
+      </div>
+      <div class="form-group">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" name="password" required />
+      </div>
+      <button type="submit" class="btn">Login</button>
+      <div id="adminLoginError" class="error" style="display:none;"></div>
+    </form>
+  </div>
+<script>
+document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const username = document.getElementById('adminUsername').value;
+  const password = document.getElementById('adminPassword').value;
+  const errorDiv = document.getElementById('adminLoginError');
+  errorDiv.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = '/admin';
+    } else {
+      errorDiv.textContent = data.error || 'Login failed';
+      errorDiv.style.display = 'block';
+    }
+  } catch (err) {
+    errorDiv.textContent = 'Server error';
+    errorDiv.style.display = 'block';
+  }
+});
+
+  </script>
+</body>
+</html>

@@ -8,6 +8,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const session = require('express-session');
+
 
 // ---- Supabase connection test (your existing module) ----
 const { testConnection } = require('./config/supabase');
@@ -22,6 +24,52 @@ const commentsRoutes = require('./routes/comments');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
+
+// -- Your Admin login authentication ---
+
+
+
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: 'your-secret-key', // Change this to a strong secret in production!
+  resave: false,
+  saveUninitialized: false
+}));
+
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'password123';
+
+// Login API
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === ADMIN_USER && password === ADMIN_PASS) {
+    req.session.isAdmin = true;
+    return res.json({ success: true });
+  }
+  res.status(401).json({ success: false, error: 'Invalid credentials' });
+});
+
+// Middleware to protect /admin
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.isAdmin) return next();
+  res.redirect('/login-admin.html');
+}
+
+// Serve admin dashboard at /admin
+app.get('/admin', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Logout route (optional)
+app.get('/api/admin/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login-admin.html');
+  });
+});
+
+// ...other routes (API, etc.)...
 
 // Behind Render’s proxy so rate-limit & IPs work correctly
 app.set('trust proxy', 1);
