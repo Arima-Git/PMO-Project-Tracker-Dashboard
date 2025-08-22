@@ -34,11 +34,38 @@
     </form>
   </div>
   <script>
-    document.getElementById('pmoLoginForm').addEventListener('submit', function(e) {
+    document.getElementById('pmoLoginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      // Add your authentication logic here
-      // Example: redirect on success
-      window.location.href = '/readonly.html';
+      const username = document.getElementById('pmoUsername').value;
+      const password = document.getElementById('pmoPassword').value;
+      const errorDiv = document.getElementById('pmoLoginError');
+      errorDiv.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.role) {
+          if (data.role === 'manager') {
+            window.location.href = '/pmo';
+          } else if (data.role === 'viewer') {
+            window.location.href = '/viewer';
+          } else if (data.role === 'admin') {
+            window.location.href = '/admin';
+          } else {
+            errorDiv.textContent = 'Unknown role.';
+            errorDiv.style.display = 'block';
+          }
+        } else {
+          errorDiv.textContent = data.message || 'Login failed.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Server error.';
+        errorDiv.style.display = 'block';
+      }
     });
   </script>
 </body>

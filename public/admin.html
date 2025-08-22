@@ -499,5 +499,42 @@
   </div>
 
 <script src="/js/admin.js"></script>
+<script>
+// User creation form handler
+document.addEventListener('DOMContentLoaded', function() {
+  const addUserForm = document.getElementById('addUserForm');
+  if (addUserForm) {
+    addUserForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const btn = addUserForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+      try {
+        const res = await fetch('/api/admin/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, role })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('User created successfully!');
+          addUserForm.reset();
+        } else {
+          alert(data.error || 'Failed to create user');
+        }
+      } catch (err) {
+        alert('Server error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '+ Add User';
+      }
+    });
+  }
+});
+</script>
 </body>
 </html> 

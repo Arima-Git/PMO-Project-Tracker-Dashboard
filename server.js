@@ -58,8 +58,43 @@ function requireAdmin(req, res, next) {
 }
 
 // Serve admin dashboard at /admin
-app.get('/admin', requireAdmin, (req, res) => {
+// Enhanced admin protection: require user session and role === 'admin'
+function requireStrictAdmin(req, res, next) {
+  if (req.session && req.session.user && req.session.user.role === 'admin') return next();
+  res.redirect('/login-admin.html');
+}
+
+app.get('/admin', requireStrictAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Middleware to protect PMO dashboard
+function requireManager(req, res, next) {
+  if (req.session && req.session.user && req.session.user.role === 'manager') return next();
+  res.redirect('/login-pmo.html');
+}
+
+// Middleware to protect Viewer dashboard
+function requireViewer(req, res, next) {
+  if (req.session && req.session.user && req.session.user.role === 'viewer') return next();
+  res.redirect('/login-pmo.html');
+}
+
+// Serve PMO dashboard at /pmo
+app.get('/pmo', requireManager, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Serve Viewer dashboard at /viewer
+
+// Allow both manager and viewer to access /viewer (readonly.html)
+function requireManagerOrViewer(req, res, next) {
+  if (req.session && req.session.user && (req.session.user.role === 'manager' || req.session.user.role === 'viewer')) return next();
+  res.redirect('/login-pmo.html');
+}
+
+app.get('/viewer', requireManagerOrViewer, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'readonly.html'));
 });
 
 // Logout route (optional)
