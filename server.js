@@ -45,7 +45,7 @@ const ADMIN_PASS = 'password123';
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body;
   if (username === ADMIN_USER && password === ADMIN_PASS) {
-    req.session.isAdmin = true;
+    req.session.user = { username, role: 'admin' };
     return res.json({ success: true });
   }
   res.status(401).json({ success: false, error: 'Invalid credentials' });
