@@ -40,13 +40,25 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
   const password = document.getElementById('adminPassword').value;
   const errorDiv = document.getElementById('adminLoginError');
   errorDiv.style.display = 'none';
+  // Try static admin login first
   try {
-    const res = await fetch('/api/login', {
+    let res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    const data = await res.json();
+    let data = await res.json();
+    if (res.ok && data.success) {
+      window.location.href = '/admin';
+      return;
+    }
+    // If static login fails, try database login
+    res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    data = await res.json();
     if (res.ok && data.success && data.role === 'admin') {
       window.location.href = '/admin';
     } else {
