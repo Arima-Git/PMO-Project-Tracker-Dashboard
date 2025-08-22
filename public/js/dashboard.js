@@ -30,16 +30,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('exportCsvBtn').addEventListener('click', exportToCSV);
   document.getElementById('clearFiltersBtn').addEventListener('click', clearAllFilters);
   // Fix: Add event listeners for close icons with fallback for missing elements
-  var closeModalBtn = document.getElementById('closeModalBtn');
-  if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-  var cancelModalBtn = document.getElementById('cancelModalBtn');
-  if (cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
-  var cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-  var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
-  var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn');
-  if (closeCommentsModalBtn) closeCommentsModalBtn.addEventListener('click', closeCommentsModal);
+  // Attach close icon listeners after DOM is ready and for dynamically created modals
+  document.body.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'closeModalBtn') closeModal();
+    if (e.target && e.target.id === 'cancelModalBtn') closeModal();
+    if (e.target && e.target.id === 'cancelDeleteBtn') closeDeleteModal();
+    if (e.target && e.target.id === 'confirmDeleteBtn') confirmDelete();
+    if (e.target && e.target.id === 'closeCommentsModalBtn') closeCommentsModal();
+  });
 });
 
 // API Status Check
@@ -115,92 +113,12 @@ function populateFiltersFromProjects(projects) {
   populateFilter('priorityFilter', priorities);
   populateFilter('accountManagerFilter', accountManagers);
   
-  // Also update form dropdowns
-  updateFormDropdownsFromProjects(projects);
+  // Do NOT update form dropdowns from projects. Only use dropdown_options for form dropdowns.
 }
 
 // Update form dropdowns from project data
 function updateFormDropdownsFromProjects(projects) {
-  if (!projects || projects.length === 0) return;
-  
-  // Extract unique values
-  const statuses = [...new Set(projects.map(p => p.status).filter(Boolean))].sort();
-  const phases = [...new Set(projects.map(p => p.current_phase).filter(Boolean))].sort();
-  const priorities = [...new Set(projects.map(p => p.priority).filter(Boolean))].sort();
-  const endMonths = [...new Set(projects.map(p => p.end_month).filter(Boolean))].sort();
-  const accountManagers = [...new Set(projects.map(p => p.account_manager).filter(Boolean))].sort();
-  
-  // Update account manager dropdown
-  const accountManagerSelect = document.getElementById('accountManager');
-  if (accountManagerSelect) {
-    accountManagerSelect.innerHTML = '<option value="">Select Account Manager</option>';
-    accountManagers.forEach(manager => {
-      const option = document.createElement('option');
-      option.value = manager;
-      option.textContent = manager;
-      accountManagerSelect.appendChild(option);
-    });
-  }
-  
-  // Update status dropdown
-  const statusSelect = document.getElementById('status');
-  if (statusSelect) {
-    statusSelect.innerHTML = '<option value="">Select Status</option>';
-    statuses.forEach(status => {
-      const option = document.createElement('option');
-      option.value = status;
-      option.textContent = status;
-      statusSelect.appendChild(option);
-    });
-  }
-  
-  // Update current phase dropdown
-  const currentPhaseSelect = document.getElementById('currentPhase');
-  if (currentPhaseSelect) {
-    currentPhaseSelect.innerHTML = '<option value="">Select Current Phase</option>';
-    phases.forEach(phase => {
-      const option = document.createElement('option');
-      option.value = phase;
-      option.textContent = phase;
-      currentPhaseSelect.appendChild(option);
-    });
-  }
-  
-  // Update priority dropdown
-  const prioritySelect = document.getElementById('priority');
-  if (prioritySelect) {
-    prioritySelect.innerHTML = '<option value="">Select Priority</option>';
-    priorities.forEach(priority => {
-      const option = document.createElement('option');
-      option.value = priority;
-      option.textContent = priority;
-      prioritySelect.appendChild(option);
-    });
-  }
-  
-  // Update end month dropdown
-  const endMonthSelect = document.getElementById('endMonth');
-  if (endMonthSelect) {
-    endMonthSelect.innerHTML = '<option value="">Select End Month</option>';
-    endMonths.forEach(month => {
-      const option = document.createElement('option');
-      option.value = month;
-      option.textContent = month;
-      endMonthSelect.appendChild(option);
-    });
-  }
-  
-  // Update status2 dropdown (current status)
-  const status2Select = document.getElementById('status2');
-  if (status2Select) {
-    status2Select.innerHTML = '<option value="">Select Current Status</option>';
-    status2s.forEach(status => {
-      const option = document.createElement('option');
-      option.value = status;
-      option.textContent = status;
-      status2Select.appendChild(option);
-    });
-  }
+  // This function is intentionally left blank. All form dropdowns should be populated from dropdown_options only.
 }
 
 function populateFilter(filterId, options) {
