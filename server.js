@@ -82,7 +82,7 @@ function requireViewer(req, res, next) {
 
 // Serve PMO dashboard at /pmo
 app.get('/pmo', requireManager, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pmo.html'));
 });
 
 // Serve Viewer dashboard at /viewer
@@ -215,6 +215,17 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/comments', commentsRoutes);
 
+// Block direct access to dashboard files
+app.get('/index.html', (req, res) => {
+  res.redirect('/login-pmo.html');
+});
+app.get('/readonly.html', (req, res) => {
+  res.redirect('/login-pmo.html');
+});
+app.get('/admin.html', (req, res) => {
+  res.redirect('/login-admin.html');
+});
+
 // 404 for unknown API routes (kept before SPA fallback)
 app.use('/api', (req, res) => {
   res.status(404).json({
@@ -228,7 +239,7 @@ app.use('/api', (req, res) => {
 app.get(/^\/(?!api\/).*/, (req, res, next) => {
   // only handle GETs to avoid swallowing POST/PUT/DELETE by mistake
   if (req.method !== 'GET') return next();
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'landing.html'));
 });
 
 // ---------- Global error handler ----------
