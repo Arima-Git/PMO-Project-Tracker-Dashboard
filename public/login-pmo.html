@@ -43,10 +43,22 @@
 
       // Hardcoded credentials for each dashboard
       if (username === 'pmomanager' && password === 'pmomanager123') {
+        // Set session for PMO manager
+        await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, hardcoded: true })
+        });
         window.location.href = '/pmo';
         return;
       }
       if (username === 'pmoviewer' && password === 'pmoviewer123') {
+        // Set session for PMO viewer
+        await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, hardcoded: true })
+        });
         window.location.href = '/viewer';
         return;
       }
