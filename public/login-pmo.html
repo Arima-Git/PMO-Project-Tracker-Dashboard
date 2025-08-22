@@ -40,13 +40,40 @@
       const password = document.getElementById('pmoPassword').value;
       const errorDiv = document.getElementById('pmoLoginError');
       errorDiv.style.display = 'none';
+
+      // Hardcoded credentials for each dashboard
+      if (username === 'pmomanager' && password === 'pmomanager123') {
+        window.location.href = '/pmo';
+        return;
+      }
+      if (username === 'pmoviewer' && password === 'pmoviewer123') {
+        window.location.href = '/viewer';
+        return;
+      }
+      if (username === 'pmotrangotech' && password === 'pmotrangotech123') {
+        window.location.href = '/admin';
+        return;
+      }
+
+      // Try static admin login first
       try {
-        const res = await fetch('/api/login', {
+        let res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-        const data = await res.json();
+        let data = await res.json();
+        if (res.ok && data.success) {
+          window.location.href = '/admin';
+          return;
+        }
+        // If static login fails, try database login
+        res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        data = await res.json();
         if (res.ok && data.role) {
           if (data.role === 'manager') {
             window.location.href = '/pmo';

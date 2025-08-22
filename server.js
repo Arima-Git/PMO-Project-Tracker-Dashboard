@@ -38,8 +38,8 @@ app.use(session({
   saveUninitialized: false
 }));
 
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'password123';
+const ADMIN_USER = 'pmotrangotech';
+const ADMIN_PASS = 'pmotrangotech123';
 
 // Login API
 app.post('/api/admin/login', (req, res) => {
