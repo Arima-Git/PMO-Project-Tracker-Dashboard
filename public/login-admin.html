@@ -40,15 +40,14 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
   const password = document.getElementById('adminPassword').value;
   const errorDiv = document.getElementById('adminLoginError');
   errorDiv.style.display = 'none';
-
   try {
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    if (data.success) {
+    if (res.ok && data.success && data.role === 'admin') {
       window.location.href = '/admin';
     } else {
       errorDiv.textContent = data.error || 'Login failed';

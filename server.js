@@ -209,10 +209,12 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // ---------- API routes (mounted BEFORE any SPA fallback) ----------
+const { authRouter } = require('./routes/auth');
 app.use('/api/projects', projectsRoutes);
 app.use('/api/simple-projects', simpleProjectsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api', authRouter);
 app.use('/api/comments', commentsRoutes);
 
 // Block direct access to dashboard files
