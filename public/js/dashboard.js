@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target && e.target.id === 'cancelModalBtn') closeModal();
     if (e.target && e.target.id === 'cancelDeleteBtn') closeDeleteModal();
     if (e.target && e.target.id === 'confirmDeleteBtn') confirmDelete();
-    if (e.target && e.target.id === 'closeCommentsModalBtn') closeCommentsModal();
+    // Removed cross icon for PMO comments modal
+    // Removed cross icon for add project modal
+    // Do not handle closeCommentsModalBtn or any cross icon for comments/add project modals
   });
 });
 

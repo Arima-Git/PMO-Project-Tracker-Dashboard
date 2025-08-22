@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PMO Project Tracker Dashboard (Read Only)</title>
+<!-- Copy styles from index.html -->
+<style>
+  :root { --bg: #f9fafb; --card: #ffffff; --muted: #64748b; --text: #1e293b; --accent: #3b82f6; --border: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 24px 20px 10px; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 0; z-index: 100; }
+  h1 { margin: 0; font-size: 22px; color: var(--text); }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .container { padding: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+  .kpis { grid-column: span 12; display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; }
+  .kpi .label { color: var(--muted); font-size: 13px; }
+  .kpi .value { font-size: 26px; font-weight: 600; color: var(--accent); }
+  .filters { grid-column: span 12; display: flex; flex-wrap: wrap; gap: 16px; }
+  .filters select, .filters input { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: #fff; color: var(--text); font-size: 14px; flex: 1; min-width: 180px; transition: all 0.2s ease; }
+  .filters select:focus, .filters input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+  .table-wrap { grid-column: span 12; overflow: auto; max-height: 65vh; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { position: sticky; top: 0; background: #f1f5f9; text-align: left; padding: 10px; border-bottom: 1px solid var(--border); white-space: nowrap; z-index: 3; }
+  tbody td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+  tbody tr:hover { background: #f9fafc; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #f1f5f9; border: 1px solid var(--border); font-size: 12px; }
+  .btn { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-warning { background: var(--warning); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .controls { grid-column: span 12; display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center; }
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+  .modal-content { background-color: var(--card); margin: 5% auto; padding: 24px; border-radius: 14px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
+  .close { color: var(--muted); float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+  .close:hover { color: var(--text); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 14px; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; transition: border-color 0.2s ease; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .form-group textarea { height: 100px; resize: vertical; font-family: inherit; }
+  .form-group.full-width { grid-column: 1 / -1; }
+  .status-active { color: var(--success); font-weight: 600; }
+  .status-inactive { color: var(--muted); font-weight: 600; }
+  .status-hold { color: var(--warning); font-weight: 600; }
+  .priority-high { color: var(--danger); font-weight: 600; }
+  .priority-low { color: var(--muted); font-weight: 600; }
+  .notification { position: fixed; top: 20px; right: 20px; padding: 16px 20px; border-radius: 8px; color: white; font-weight: 600; z-index: 1001; transform: translateX(400px); transition: transform 0.3s ease; max-width: 300px; }
+  .notification.show { transform: translateX(0); }
+  .notification.success { background: var(--success); }
+  .notification.error { background: var(--danger); }
+  .notification.warning { background: var(--warning); }
+  .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .controls { flex-direction: column; align-items: stretch; } .filters { flex-direction: column; } }
+  .btn-info { background: #0ea5e9; color: white; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>PMO Project Tracker Dashboard (Read Only)</h1>
+    <div class="sub">View-only dashboard for projects, customers, and statuses.</div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <!-- Controls (no add project button) -->
+      <div class="controls">
+        <button id="refreshDataBtn" class="btn btn-primary">🔄 Refresh Data</button>
+        <button id="exportCsvBtn" class="btn btn-warning">📊 Export CSV</button>
+        <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--muted); font-size: 14px;">API Status:</span>
+          <span id="apiStatus" style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: #f1f5f9;">Checking...</span>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpis">
+        <div class="card kpi">
+          <div class="label">Total Projects</div>
+          <div id="kpi-total" class="value">0</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Active Projects</div>
+          <div id="kpi-active" class="value">0</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">High Priority</div>
+          <div id="kpi-high-priority" class="value">0</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">In Development</div>
+          <div id="kpi-development" class="value">0</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Last Updated</div>
+          <div id="kpi-last-updated" class="value">-</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <select id="endmonthFilter">
+          <option value="">All End Month</option>
+        </select>
+        <select id="status2Filter">
+          <option value="">All Current Status</option>
+        </select>
+        <select id="priorityFilter">
+          <option value="">All Priorities</option>
+        </select>
+        <select id="accountManagerFilter">
+          <option value="">All Account Managers</option>
+        </select>
+        <input id="searchBox" type="search" placeholder="🔍 Search Projects, Customer, AM..." />
+      </div>
+
+      <!-- Table (no Actions column) -->
+      <div class="card table-wrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Project Name</th>
+              <th>Account Manager</th>
+              <th>Status</th>
+              <th>Current Phase</th>
+              <th>Priority</th>
+              <th>End Month</th>
+              <th>Current Status</th>
+              <th>PMO Comments</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Modal (view only, no add form) -->
+  <div id="commentsModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h2 id="commentsModalTitle">PMO Comments</h2>
+      <!-- Comments List -->
+      <div id="commentsList">
+        <div style="text-align: center; padding: 20px; color: var(--muted);">
+          Loading comments...
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="/js/readonly-dashboard.js"></script>
+</body>
+</html>
